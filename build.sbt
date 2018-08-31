@@ -15,8 +15,11 @@ lazy val root = (project in file(".")).
       "com.twelvemonkeys.imageio" % "imageio-iff" % "3.4",
       "com.twelvemonkeys.imageio" % "imageio-tiff" % "3.4",
       "com.googlecode.plist" % "dd-plist" % "1.21",
-      "org.jcodec" % "jcodec" % "0.2.2",
-      "org.jcodec" % "jcodec-javase" % "0.2.2",
+      "org.spire-math" %% "jawn-parser" % "0.13.0", //for circe literals
+      "io.circe" %% "circe-core" % "0.10.0-M2",
+      "io.circe" %% "circe-generic" % "0.10.0-M2",
+      "io.circe" %% "circe-parser" % "0.10.0-M2",
+      "io.circe" %% "circe-literal" % "0.10.0-M2",
       scalaTest % Test
     )
   )

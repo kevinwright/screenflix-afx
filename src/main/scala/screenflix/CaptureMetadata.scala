@@ -1,5 +1,7 @@
 package screenflix
 
+import java.io.File
+import java.nio.file.Path
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID
 
@@ -23,8 +25,8 @@ case class CaptureMetadata(
 )
 
 object CaptureMetadata {
-  def load(fileName: String): CaptureMetadata = {
-    val rootDict = PropertyListParser.parse(fileName).asInstanceOf[NSDictionary]
+  def load(filePath: Path): CaptureMetadata = {
+    val rootDict = PropertyListParser.parse(filePath.toFile).asInstanceOf[NSDictionary]
 
     val averageCaptureRate = rootDict.objectForKey("averageCaptureRate").asInstanceOf[NSNumber].doubleValue
     val captureRate = rootDict.objectForKey("captureRate").asInstanceOf[NSNumber].longValue

@@ -17,12 +17,11 @@ case class CursorEntry(
   override def toString: String = {
     f"$timestamp - image: ${imageId getOrElse "∅"} - scale: $scale - size: $size - pos: $hotspotAbsolute"
   }
-
 }
 
 object CursorEntry {
-  case class Factory(frameRate: Long) {
-    def getFromBuffer(buf: ByteBuffer): CursorEntry = {
+  case class Factory(frameRate: Long) extends (ByteBuffer => CursorEntry) {
+    def apply(buf: ByteBuffer): CursorEntry = {
       buf.getInt() //reserved
 
       val rawTimestamp = buf.getDouble()

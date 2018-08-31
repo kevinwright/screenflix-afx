@@ -31,7 +31,13 @@ import Smpte._
 case class Smpte(h: Int, m: Int, s: Int, f: Int, frameRate: Int) {
   override def toString: String = f"$h:$m%02d:$s%02d:$f%03d"
 
-  def toFrame: Long = {
+  def inSeconds: Double = {
+    val wholeMins = (h * MinutesPerHour) + m
+    val wholeSecs = (wholeMins * SecondsPerMinute) + s
+    wholeSecs + (f.toDouble / frameRate.toDouble)
+  }
+
+  def inFrames: Long = {
     val wholeMins = (h * MinutesPerHour) + m
     val wholeSecs = (wholeMins * SecondsPerMinute) + s
     (wholeSecs * frameRate) + f
