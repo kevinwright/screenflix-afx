@@ -3,23 +3,23 @@ package screenflix
 
 
 object Smpte {
-  private val MillisPerSecond = 1000L
   private val SecondsPerMinute = 60L
   private val MinutesPerHour = 60L
 
-  def fromSecondsDouble(sd: Double, frameRate: Long): Smpte = {
-    val wholeSeconds = sd.toLong
+  def fromSecondsDouble(t: Double, frameRate: Long): Smpte = {
+    val framesTotal = math.round(t * frameRate)
 
-    val secondsPart = wholeSeconds % SecondsPerMinute
-    val wholeMinutes = wholeSeconds / SecondsPerMinute
-    val minutesPart = wholeMinutes % MinutesPerHour
-    val hoursPart = wholeMinutes / MinutesPerHour
+    val frames = framesTotal % frameRate
+    val secsTotal = framesTotal / frameRate
+    val secs = secsTotal % SecondsPerMinute
+    val minsTotal = secsTotal / SecondsPerMinute
+    val mins = minsTotal % MinutesPerHour
+    val hours = minsTotal / MinutesPerHour
 
-    val frames = math.round((sd - wholeSeconds.toDouble) * frameRate)
     Smpte(
-      hoursPart.toInt,
-      minutesPart.toInt,
-      secondsPart.toInt,
+      hours.toInt,
+      mins.toInt,
+      secs.toInt,
       frames.toInt,
       frameRate.toInt
     )

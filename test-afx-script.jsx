@@ -5,7 +5,6 @@ Array.prototype.map||(Array.prototype.map=function(r,t){var n,o,e;if(null==this)
 
 var exportDir = "/Users/kevin/Library/Application Support/com.araeliumgroup.screenflick/Movies/Plugin Better Run-Thru extract/";
 
-
 var activeItem = app.project.activeItem;
 if ( activeItem == null || ! activeItem instanceof CompItem) {
     alert("You need to select a comp first.");
@@ -28,8 +27,6 @@ function loadAndProcessSummaryFile(fileName) {
 }
 
 function processSummary(summary) {
-
-
     var cursorImageFootage = itemNamed("cursor-image-frames");
     if(!cursorImageFootage) {
         var seqStartFile = new File(exportDir + summary.images[0].filename);
@@ -48,18 +45,25 @@ function processSummary(summary) {
     cursorImageLayer.scale.setValue([10, 10]);
     cursorImageLayer.anchorPoint.setValue([250, 250]);
 
+    var cursorClickFootage = itemNamed("click-effect");
+    var cursorClickLayer = activeItem.layers.add(cursorClickFootage, activeItem.duration);	
+    cursorClickLayer.moveToBeginning();
+    cursorClickLayer.timeRemapEnabled = true;
+    cursorClickLayer.outPoint = activeItem.duration
 
-    assignCursorMarkers(cursorImageLayer, summary.keyframes);
+    assignMouseMotion(cursorImageLayer, summary.mouseMotion);
+    assignMouseClicks(cursorClickLayer, summary.mouseEvents);
 }
 
-function assignCursorMarkers(layer, keyframes) {
+function assignMouseMotion(layer, keyframes) {
     var frameDuration = layer.source.frameDuration
     var prevId = -1;
     var prevPos;
 
-    
     var frameTimes = [];
     var framePositions = [];
+
+    var timeProp = layer.property("timeRemap");
 
     keyframes.map(function(kf){
         var t = kf.when.seconds;
@@ -71,18 +75,32 @@ function assignCursorMarkers(layer, keyframes) {
         }
         if(kf.imageId !== prevId) {
             var id = kf.imageId;
-            var newMarker = new MarkerValue(id);
-            layer.Marker.setValueAtTime(t, newMarker);
-            //layer.property("timeRemap").setValueAtTime(t, id * frameDuration);
-            var timeProp = layer.property("timeRemap");
+            layer.Marker.setValueAtTime(t, new MarkerValue(id));
             var keyIdx = timeProp.addKey(t);
             timeProp.setValueAtKey(keyIdx, id * frameDuration);
             timeProp.setInterpolationTypeAtKey(keyIdx, KeyframeInterpolationType.HOLD);
             prevId = id;
         } 
     });
-;
+
     layer.position.setValuesAtTimes(frameTimes, framePositions);
+}
+
+function assignMouseClicks(layer, keyframes) {
+    var timeProp = layer.property("timeRemap");
+    var aniDuration = layer.source.duration;
+    var frameDuration = layer.containingComp.frameDuration
+
+    keyframes.map(function(kf){
+        if(kf.eventType === "leftMouseDown"){
+            var t = kf.when.seconds;
+            layer.Marker.setValueAtTime(t, new MarkerValue("click"));
+            var startKeyIdx = timeProp.addKey(t);
+            timeProp.setValueAtTime(t, 0);
+            timeProp.setValueAtTime(t + aniDuration, aniDuration);
+            timeProp.setValueAtTime(t + aniDuration + frameDuration, 0);
+        }
+    });
 }
 
 function itemNamed(name) {

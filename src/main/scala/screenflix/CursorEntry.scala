@@ -26,13 +26,13 @@ object CursorEntry {
 
       val rawTimestamp = buf.getDouble()
       val timestamp = Smpte.fromSecondsDouble(rawTimestamp, frameRate)
-      val visible = buf.get() > 0
+      val visible = buf.getBool()
       val scale = buf.getFloat()
       val hotspot = FloatVect.getFromBuffer(buf).toIntVect
       val origin = FloatVect.getFromBuffer(buf)
       val size = FloatVect.getFromBuffer(buf).toIntVect
 
-      val imageId = if (visible) Some(buf.getUnsignedInt()) else None
+      val imageId = if (visible) Some(buf.getUInt32()) else None
 
       CursorEntry(timestamp, imageId, scale, hotspot, origin, size)
     }

@@ -28,8 +28,8 @@ object CursorImageEntry {
 
   case class Factory(detailMap: Map[Long, ImgDetail]) extends (ByteBuffer => CursorImageEntry) {
     def apply(buf: ByteBuffer): CursorImageEntry = {
-      val id = buf.getUnsignedInt().toInt
-      val length = buf.getUnsignedInt().toInt
+      val id = buf.getUInt32().toInt
+      val length = buf.getUInt32().toInt
       val imgBytes = Array.ofDim[Byte](length)
       buf.get(imgBytes)
       val imgHash = java.util.Arrays.hashCode(imgBytes) & 0x00000000ffffffffL

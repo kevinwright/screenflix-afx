@@ -50,6 +50,12 @@ object Main extends App {
   val imageEntries = BinaryFileParser.parse(imagesFilePath, imageEntryFactory)
   val normalisedImageEntries = imageEntries map { _.normalised }
 
+  val eventsFilePath = inputDirPath resolve "Events"
+  val eventFactory = Event.Factory(meta.captureRate)
+  val events = BinaryFileParser.parse(eventsFilePath, eventFactory, "SCISdata", skipPreamble = true)
+
+  events foreach { println }
+
 
   /////////////////////
   // export data
@@ -61,7 +67,7 @@ object Main extends App {
   val afxText = adobePasteableFormat(motionEntries, meta)
 
 
-  writeTextFile(outputDirPath, "summary.json", summaryJson(motionEntries, normalisedImageEntries, meta).spaces4)
+  writeTextFile(outputDirPath, "summary.json", summaryJson(motionEntries, normalisedImageEntries, events, meta).spaces4)
   writeTextFile(outputDirPath, "keyframes.txt", afxText)
 
   copyToClipboard(afxText)

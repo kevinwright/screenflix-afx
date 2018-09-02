@@ -20,6 +20,8 @@ lazy val root = (project in file(".")).
       "io.circe" %% "circe-generic" % "0.10.0-M2",
       "io.circe" %% "circe-parser" % "0.10.0-M2",
       "io.circe" %% "circe-literal" % "0.10.0-M2",
+      "com.beachape" %% "enumeratum" % "1.5.13",
+      "com.beachape" %% "enumeratum-circe" % "1.5.13",
       scalaTest % Test
     )
   )

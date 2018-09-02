@@ -41,6 +41,7 @@ object ExportHelpers {
   def summaryJson(
     motionEntries: Seq[CursorEntry],
     imageEntries: Seq[CursorImageEntry],
+    events: Seq[Event],
     meta: CaptureMetadata
   ): Json = {
     val keyframeSnippets = motionEntries map { entry =>
@@ -73,6 +74,34 @@ object ExportHelpers {
       }"""
     }
 
+    val mouseEventSnippets = events collect {
+      case MouseEvent(timestamp, eventType, flags, location, button, clickCount) =>
+        val intLoc = location.toIntVect
+        json"""{
+            "when": ${smpteJson(timestamp)},
+            "eventType": ${eventType.name},
+            "flags": $flags,
+            "x": ${intLoc.x},
+            "y": ${intLoc.y},
+            "button": $button,
+            "clickCount": $clickCount
+        }"""
+    }
+
+    val keyboardEventSnippets = events collect {
+      case KeyboardEvent(timestamp, eventType, flags, keyCode, isRepeat, chars, charsWithoutModifiers) =>
+
+        json"""{
+          "when": ${smpteJson(timestamp)},
+          "eventType": ${eventType.name},
+          "flags": $flags,
+          "keyCode": $keyCode,
+          "isRepeat": $isRepeat,
+          "chars": $chars,
+          "charsWithoutModifiers": $charsWithoutModifiers
+      }"""
+    }
+
     json""" {
         "meta": {
             "width": ${meta.width},
@@ -81,7 +110,9 @@ object ExportHelpers {
             "duration": ${smpteJson(meta.duration)}
         },
         "images": $imageSnippets,
-        "keyframes": $keyframeSnippets
+        "mouseMotion": $keyframeSnippets,
+        "mouseEvents": $mouseEventSnippets,
+        "keyboardEvents": $keyboardEventSnippets
     }"""
   }
 
