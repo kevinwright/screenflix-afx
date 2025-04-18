@@ -3,7 +3,7 @@ package screenflix
 import java.nio.file.Paths
 import ExportHelpers._
 
-object Main extends App {
+@main def main(): Unit = {
 
   /////////////////////////////////////
   // Sanity-check input param

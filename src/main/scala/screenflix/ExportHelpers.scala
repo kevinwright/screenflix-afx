@@ -28,7 +28,7 @@ object ExportHelpers {
         |${afxKeyframes}
         |
         |
-        |End of Keyframe Data""".stripMargin.replaceAllLiterally("~", "\t")
+        |End of Keyframe Data""".stripMargin.replace("~", "\t")
   }
 
   def smpteJson(smpte: Smpte): Json =
