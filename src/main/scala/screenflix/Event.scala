@@ -59,7 +59,9 @@ object Event {
       //  [mDataStream writeUInt32:event->modifierFlags];
       val rawTimestamp = buf.getDouble()
       val timestamp = Smpte.fromSecondsDouble(rawTimestamp, frameRate)
-      val eventType = EventType.withValue(buf.getUInt32().toInt)
+      val rawEventType = buf.getUInt32()
+      println(s"rawEventType: $rawEventType")
+      val eventType = EventType.withValue(rawEventType.toInt)
       val flags = buf.getUInt32()
 
       if(eventType.isMouse) {

@@ -58,7 +58,7 @@ import scala.jdk.CollectionConverters.*
 
   val eventsFilePath = inputPath.resolve("Events")
   val eventFactory = Event.Factory(meta.captureRate)
-  val events = BinaryFileParser.parse(eventsFilePath, eventFactory, "SCISdata")
+  val events = BinaryFileParser.parse(eventsFilePath, eventFactory, "SCISdata", preambleByteLength = 6*4)
 
   events foreach { println }
 

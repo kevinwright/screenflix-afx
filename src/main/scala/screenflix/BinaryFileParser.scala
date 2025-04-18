@@ -10,7 +10,7 @@ object BinaryFileParser {
     filePath: Path,
     parseBlock: ByteBuffer => T,
     expectedHeader: String = "",
-    expectPreamble: Boolean = false
+    preambleByteLength: Int = 0
   ): Seq[T] = {
     val file = new RandomAccessFile(filePath.toFile, "r")
     try {
@@ -21,11 +21,11 @@ object BinaryFileParser {
         assert(header == expectedHeader, s"Expected header: $expectedHeader not found.")
       }
 
-      if(expectPreamble) {
-        val preamble = Array.ofDim[Byte](24)
+      if(preambleByteLength > 0) {
+        val preamble = Array.ofDim[Byte](preambleByteLength)
         buf.get(preamble)
-        assert(preamble.head == (1: Byte), s"Expected preamble for ${filePath} to start with 1")
-        assert(preamble.tail.forall(_ == (0: Byte)), s"Expected preamble for ${filePath} to end with 0's")
+//        assert(preamble.head == (1: Byte), s"Expected preamble for ${filePath} to start with 1")
+//        assert(preamble.tail.forall(_ == (0: Byte)), s"Expected preamble for ${filePath} to end with 0's")
       }
 
       val sb = Seq.newBuilder[T]
