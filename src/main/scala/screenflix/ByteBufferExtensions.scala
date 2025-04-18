@@ -13,7 +13,7 @@ extension (bb: ByteBuffer) {
   def getNSStr(): String = {
     val prefix: Array[Byte] = Array.ofDim[Byte](5)
     bb.get(prefix)
-    if(prefix.deep != Array(1,1,0,0,0).map(_.toByte).deep) {
+    if(!prefix.sameElements(Array(1,1,0,0,0).map(_.toByte))) {
       sys.error(s"NSString prefix was unexpected: ${prefix.mkString(" ")}")
     }
     bb.get().toChar.toString

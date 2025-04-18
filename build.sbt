@@ -10,6 +10,7 @@ lazy val root = (project in file(".")).
       scalaVersion := "3.6.4",
       version      := "0.1.0-SNAPSHOT"
     )),
+    scalacOptions += "-Yretain-trees",
     name := "screenflix-afx",
     libraryDependencies ++= Seq(
       "com.twelvemonkeys.common" % "common-lang" % imageio_version,
@@ -18,7 +19,6 @@ lazy val root = (project in file(".")).
       "com.twelvemonkeys.imageio" % "imageio-iff" % imageio_version,
       "com.twelvemonkeys.imageio" % "imageio-tiff" % imageio_version,
       "com.googlecode.plist" % "dd-plist" % "1.28",
-//      "org.spire-math" %% "jawn-parser" % "0.13.0", //for circe literals
       "io.circe" %% "circe-core" % circe_version,
       "io.circe" %% "circe-generic" % circe_version,
       "io.circe" %% "circe-parser" % circe_version,

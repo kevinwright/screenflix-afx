@@ -12,6 +12,7 @@ sealed abstract class EventType(
 ) extends IntEnumEntry
 
 case object EventType extends IntEnum[EventType] with IntCirceEnum[EventType] {
+  case object Mystery            extends EventType(value = 0,  name = "mystery")
   case object LeftMouseDown      extends EventType(value = 1,  name = "leftMouseDown",     isMouse = true)
   case object LeftMouseUp        extends EventType(value = 2,  name = "leftMouseUp",       isMouse = true)
   case object RightMouseDown     extends EventType(value = 3,  name = "rightMouseDown",    isMouse = true)

@@ -1,18 +1,24 @@
 package screenflix
 
 import java.nio.file.Paths
-import ExportHelpers._
+import ExportHelpers.*
 
-@main def main(): Unit = {
+import java.util.zip.ZipFile
+import scala.jdk.CollectionConverters.*
+
+@main def main(args: String*): Unit = {
 
   /////////////////////////////////////
   // Sanity-check input param
 
-  if (args.length == 0) {
+  if (args.isEmpty) {
     sys.error(".sfmovie not specified")
     sys.exit(-1)
   }
-  if(!args(0).endsWith(".sfmovie")) {
+
+  val inputPathStr = args(0)
+
+  if(!inputPathStr.endsWith(".sfmovie")) {
     sys.error("the supplied path needs to be a .sfmovie")
     sys.exit(-1)
   }
@@ -20,9 +26,9 @@ import ExportHelpers._
   /////////////////////////////////////
   // Sort paths, ensure out dir exits
 
-  val inputDirPath = Paths.get(args(0)).normalize()
-  val inputDirNamePart = inputDirPath.getFileName.toString.dropRight(8) //lose the ".sfmovie"
-  val outputDirPath = inputDirPath.getParent.resolve(s"$inputDirNamePart extract")
+  val inputPath = Paths.get(inputPathStr).normalize()
+  val inputPathNamePart = inputPath.getFileName.toString.dropRight(8) //lose the ".sfmovie"
+  val outputDirPath = inputPath.getParent.resolve(s"$inputPathNamePart extract")
   val outputDirFile = outputDirPath.toFile
 
   if(outputDirFile.exists()) {
@@ -36,23 +42,23 @@ import ExportHelpers._
   /////////////////////////////////////
   // Load data
 
-  val plistFilePath = inputDirPath resolve "Info.plist"
+  val plistFilePath = inputPath.resolve("Info.plist")
   val meta = CaptureMetadata.load(plistFilePath)
 
-  val motionFilePath = inputDirPath resolve "Cursor"
+  val motionFilePath = inputPath.resolve("Cursor")
   val motionEntryFactory = CursorEntry.Factory(meta.captureRate)
   val motionEntries = BinaryFileParser.parse(motionFilePath, motionEntryFactory, "2SRC")
 
   val idToImgDetailMap = CursorImageEntry.buildDetailMap(motionEntries)
 
-  val imagesFilePath = inputDirPath resolve "CursorImages"
+  val imagesFilePath = inputPath.resolve("CursorImages")
   val imageEntryFactory = CursorImageEntry.Factory(idToImgDetailMap)
   val imageEntries = BinaryFileParser.parse(imagesFilePath, imageEntryFactory)
   val normalisedImageEntries = imageEntries map { _.normalised }
 
-  val eventsFilePath = inputDirPath resolve "Events"
+  val eventsFilePath = inputPath.resolve("Events")
   val eventFactory = Event.Factory(meta.captureRate)
-  val events = BinaryFileParser.parse(eventsFilePath, eventFactory, "SCISdata", skipPreamble = true)
+  val events = BinaryFileParser.parse(eventsFilePath, eventFactory, "SCISdata")
 
   events foreach { println }
 
@@ -60,8 +66,8 @@ import ExportHelpers._
   /////////////////////
   // export data
 
-  imageEntries.foreach(cie => cie.saveTiff(outputDirPath resolve s"${cie.id}.tif"))
-  normalisedImageEntries.foreach(cie => cie.saveTiff(outputDirPath resolve s"norm-${cie.id}.tif"))
+  imageEntries.foreach(cie => cie.saveTiff(outputDirPath.resolve(s"${cie.id}.tif")))
+  normalisedImageEntries.foreach(cie => cie.saveTiff(outputDirPath.resolve(s"norm-${cie.id}.tif")))
   println("Image extracts saved")
 
   val afxText = adobePasteableFormat(motionEntries, meta)

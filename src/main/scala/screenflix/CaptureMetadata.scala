@@ -30,7 +30,7 @@ object CaptureMetadata {
 
     val averageCaptureRate = rootDict.objectForKey("averageCaptureRate").asInstanceOf[NSNumber].doubleValue
     val captureRate = rootDict.objectForKey("captureRate").asInstanceOf[NSNumber].longValue
-    val date = rootDict.objectForKey("date").asInstanceOf[NSDate].getDate.toInstant.atZone(ZoneId of "UTC")
+    val date = rootDict.objectForKey("date").asInstanceOf[NSDate].getDate.toInstant.atZone(ZoneId.of("UTC"))
     val duration = Smpte.fromSecondsDouble(rootDict.objectForKey("duration").asInstanceOf[NSNumber].doubleValue, captureRate)
     val numberOfFrames = rootDict.objectForKey("numberOfFrames").asInstanceOf[NSNumber].longValue
     val framesContainCursor = rootDict.objectForKey("framesContainCursor").asInstanceOf[NSNumber].boolValue
