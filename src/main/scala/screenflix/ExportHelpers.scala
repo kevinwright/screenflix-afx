@@ -47,13 +47,15 @@ object ExportHelpers {
     val keyframeSnippets = motionEntries map { entry =>
       val when = smpteJson(entry.timestamp)
       val x = entry.hotspotAbsolute.x
-      val y = meta.height - entry.hotspotAbsolute.y //co-ord flip
+      val y = entry.hotspotAbsolute.y
+      val inv_y = meta.height - y //co-ord flip
       val imageId = entry.imageId getOrElse -1L
       val scale = entry.scale
       json"""{
           "when": $when,
           "x": $x,
           "y": $y,
+          "inv_y": $inv_y,
           "imageId": $imageId,
           "scale": $scale
       }"""

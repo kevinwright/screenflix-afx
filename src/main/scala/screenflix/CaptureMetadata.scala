@@ -1,6 +1,5 @@
 package screenflix
 
-import java.io.File
 import java.nio.file.Path
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.UUID

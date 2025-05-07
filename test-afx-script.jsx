@@ -3,111 +3,215 @@
 //Array.map Shim
 Array.prototype.map||(Array.prototype.map=function(r,t){var n,o,e;if(null==this)throw new TypeError(" this is null or not defined");var i=Object(this),a=i.length>>>0;if("function"!=typeof r)throw new TypeError(r+" is not a function");for(t&&(n=t),o=new Array(a),e=0;e<a;){var p,f;e in i&&(p=i[e],f=r.call(n,p,e,i),o[e]=f),e++}return o});
 
-var exportDir = "/Users/kevin/Library/Application Support/com.araeliumgroup.screenflick/Movies/Plugin Better Run-Thru extract/";
+// Store the export directory
+const exportDir = "/Users/kevin/Library/Application Support/com.araeliumgroup.screenflick/Movies/Screenflick Movie extract/";
 
-var activeItem = app.project.activeItem;
-if ( activeItem == null || ! activeItem instanceof CompItem) {
-    alert("You need to select a comp first.");
-} else {
-    alert("working in " + activeItem.name);
-    loadAndProcessSummaryFile(exportDir + "summary.json");
-}
+
+// Main execution
+(function main() {
+    const activeItem = app.project.activeItem;
+    if (activeItem == null || !(activeItem instanceof CompItem)) {
+        alert("You need to select a comp first.");
+    } else {
+        alert("working in " + activeItem.name);
+
+        try {
+            loadAndProcessSummaryFile(exportDir + "summary.json");
+        } catch (e) {
+            alert("Error: " + e.toString());
+        }
+    }
+})();
 
 function loadAndProcessSummaryFile(fileName) {
-    var theFile = new File(fileName);
-    
-    if(theFile.open("r")){
+    const theFile = new File(fileName);
+
+    alert("Summary file is: " + fileName);
+
+    if (!theFile.exists) {
+        alert("Summary file does not exist at: " + fileName);
+        return;
+    }
+
+    if (theFile.open("r")) {
         theFile.encoding = "UTF-8";
-        var jsonStr = theFile.read();
+        const jsonStr = theFile.read();
         theFile.close();
-                
-        var summary = JSON.parse(jsonStr);
-        processSummary(summary);
+
+        try {
+            const summary = JSON.parse(jsonStr);
+            processSummary(summary);
+        } catch (e) {
+            alert("Error parsing JSON: " + e.toString());
+        }
+    } else {
+        alert("Could not open summary file!");
+    }
+}
+
+function newCursorImageFootage(summary) {
+    if (!summary || !summary.images || !summary.images.length) {
+        alert("No cursor images found in summary file!");
+        return null;
+    }
+
+    try {
+        const seqStartFile = new File(exportDir + summary.images[0].filename);
+
+        if (!seqStartFile.exists) {
+            alert("Cursor image file does not exist at: " + seqStartFile.fsName);
+            return null;
+        }
+
+        const importOptions = new ImportOptions(seqStartFile);
+        importOptions.importAs = ImportAsType.FOOTAGE;
+        importOptions.sequence = true;
+
+        const cursorImageFootage = app.project.importFile(importOptions);
+        cursorImageFootage.name = "cursor-image-frames";
+        return cursorImageFootage;
+    } catch (e) {
+        alert("Error importing cursor images: " + e.toString());
+        return null;
     }
 }
 
 function processSummary(summary) {
-    var cursorImageFootage = itemNamed("cursor-image-frames");
-    if(!cursorImageFootage) {
-        var seqStartFile = new File(exportDir + summary.images[0].filename);
-        var importOptions = new ImportOptions(seqStartFile);
-        importOptions.importAs = ImportAsType.FOOTAGE;
-        importOptions.sequence = true;
-        
-        var cursorImageFootage = app.project.importFile(importOptions);
-        cursorImageFootage.name = "cursor-image-frames";
+    if (!summary) {
+        alert("No summary data available!");
+        return;
     }
-    
-    var cursorImageLayer = activeItem.layers.add(cursorImageFootage, activeItem.duration);	
-    cursorImageLayer.moveToBeginning();
-    cursorImageLayer.timeRemapEnabled = true;
-    cursorImageLayer.outPoint = activeItem.duration
-    cursorImageLayer.scale.setValue([10, 10]);
-    cursorImageLayer.anchorPoint.setValue([250, 250]);
 
-    var cursorClickFootage = itemNamed("click-effect");
-    var cursorClickLayer = activeItem.layers.add(cursorClickFootage, activeItem.duration);	
-    cursorClickLayer.moveToBeginning();
-    cursorClickLayer.timeRemapEnabled = true;
-    cursorClickLayer.outPoint = activeItem.duration
+    try {
+        // First check if cursor-image-frames already exists
+        let cursorImageFootage = itemNamed("cursor-image-frames");
 
-    assignMouseMotion(cursorImageLayer, summary.mouseMotion);
-    assignMouseClicks(cursorClickLayer, summary.mouseEvents);
+        // If not, create it
+        if (!cursorImageFootage) {
+            cursorImageFootage = newCursorImageFootage(summary);
+
+            if (!cursorImageFootage) {
+                alert("Failed to create cursor image footage!");
+                return;
+            }
+        }
+
+        const activeItem = app.project.activeItem;
+
+        // Add cursor image layer
+        const cursorImageLayer = activeItem.layers.add(cursorImageFootage, activeItem.duration);
+        cursorImageLayer.moveToBeginning();
+        cursorImageLayer.timeRemapEnabled = true;
+        cursorImageLayer.outPoint = activeItem.duration;
+        cursorImageLayer.scale.setValue([10, 10]);
+        cursorImageLayer.anchorPoint.setValue([250, 250]);
+
+        // Check for click effect footage
+        const cursorClickFootage = itemNamed("click-effect");
+        if (!cursorClickFootage) {
+            alert("Click effect footage not found! Please import a click effect and name it 'click-effect'.");
+            return;
+        }
+
+        // Add click effect layer
+        const cursorClickLayer = activeItem.layers.add(cursorClickFootage, activeItem.duration);
+        cursorClickLayer.moveToBeginning();
+        cursorClickLayer.timeRemapEnabled = true;
+        cursorClickLayer.outPoint = activeItem.duration;
+
+        // Assign motion and clicks
+        if (summary.mouseMotion) {
+            assignMouseMotion(cursorImageLayer, summary.mouseMotion);
+        } else {
+            alert("No mouse motion data found in summary!");
+        }
+
+        if (summary.mouseEvents) {
+            assignMouseClicks(cursorClickLayer, summary.mouseEvents);
+        } else {
+            alert("No mouse events data found in summary!");
+        }
+
+        alert("Script completed successfully!");
+
+    } catch (e) {
+        alert("Error in processSummary: " + e.toString());
+    }
 }
 
 function assignMouseMotion(layer, keyframes) {
-    var frameDuration = layer.source.frameDuration
-    var prevId = -1;
-    var prevPos;
+    if (!keyframes || keyframes.length === 0) {
+        alert("No mouse motion keyframes to process!");
+        return;
+    }
 
-    var frameTimes = [];
-    var framePositions = [];
+    try {
+        const frameDuration = layer.source.frameDuration;
+        let prevId = -1;
+        let prevPos;
 
-    var timeProp = layer.property("timeRemap");
+        const frameTimes = [];
+        const framePositions = [];
 
-    keyframes.map(function(kf){
-        var t = kf.when.seconds;
-        var newPos = [kf.x, kf.y];
-        if(newPos !== prevPos) {
-            frameTimes.push(t);
-            framePositions.push(newPos);
-            prevPos = newPos;
-        }
-        if(kf.imageId !== prevId) {
-            var id = kf.imageId;
-            layer.Marker.setValueAtTime(t, new MarkerValue(id));
-            var keyIdx = timeProp.addKey(t);
-            timeProp.setValueAtKey(keyIdx, id * frameDuration);
-            timeProp.setInterpolationTypeAtKey(keyIdx, KeyframeInterpolationType.HOLD);
-            prevId = id;
-        } 
-    });
+        const timeProp = layer.property("timeRemap");
 
-    layer.position.setValuesAtTimes(frameTimes, framePositions);
-}
+        keyframes.map(function(kf) {
+            const t = kf.when.seconds;
+            const newPos = [kf.x, kf.y];
 
-function assignMouseClicks(layer, keyframes) {
-    var timeProp = layer.property("timeRemap");
-    var aniDuration = layer.source.duration;
-    var frameDuration = layer.containingComp.frameDuration
+            if (!prevPos || newPos[0] !== prevPos[0] || newPos[1] !== prevPos[1]) {
+                frameTimes.push(t);
+                framePositions.push(newPos);
+                prevPos = newPos;
+            }
 
-    keyframes.map(function(kf){
-        if(kf.eventType === "leftMouseDown"){
-            var t = kf.when.seconds;
-            layer.Marker.setValueAtTime(t, new MarkerValue("click"));
-            var startKeyIdx = timeProp.addKey(t);
-            timeProp.setValueAtTime(t, 0);
-            timeProp.setValueAtTime(t + aniDuration, aniDuration);
-            timeProp.setValueAtTime(t + aniDuration + frameDuration, 0);
-        }
-    });
-}
+            if (kf.imageId !== prevId) {
+                const id = kf.imageId;
+                layer.Marker.setValueAtTime(t, new MarkerValue(id.toString()));
+                const keyIdx = timeProp.addKey(t);
+                timeProp.setValueAtKey(keyIdx, id * frameDuration);
+                timeProp.setInterpolationTypeAtKey(keyIdx, KeyframeInterpolationType.HOLD);
+                prevId = id;
+            }
+        });
 
-function itemNamed(name) {
-    for (var i = 1 ; i <= app.project.numItems; i++){
-        if (app.project.item(i).name == name){
-            return app.project.item(i);
-        }
+        layer.position.setValuesAtTimes(frameTimes, framePositions);
+    } catch (e) {
+        alert("Error in assignMouseMotion: " + e.toString());
     }
 }
 
+function assignMouseClicks(layer, keyframes) {
+    if (!keyframes || keyframes.length === 0) {
+        alert("No mouse click keyframes to process!");
+        return;
+    }
+
+    try {
+        const timeProp = layer.property("timeRemap");
+        const aniDuration = layer.source.duration;
+        const frameDuration = layer.containingComp.frameDuration;
+
+        keyframes.map(function(kf) {
+            if (kf.eventType === "leftMouseDown") {
+                const t = kf.when.seconds;
+                layer.Marker.setValueAtTime(t, new MarkerValue("click"));
+                //const startKeyIdx = timeProp.addKey(t);
+                timeProp.setValueAtTime(t, 0);
+                timeProp.setValueAtTime(t + aniDuration, aniDuration);
+                timeProp.setValueAtTime(t + aniDuration + frameDuration, 0);
+            }
+        });
+    } catch (e) {
+        alert("Error in assignMouseClicks: " + e.toString());
+    }
+}
+
+function itemNamed(name) {
+    for (let i = 1; i <= app.project.numItems; i++) {
+        if (app.project.item(i).name === name) {
+            return app.project.item(i);
+        }
+    }
+    return null; // Explicitly return null if not found
+}

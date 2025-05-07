@@ -1,0 +1,9 @@
+{
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportInvalidTypeForm": "none"
+  },
+  "blender.addon.loadDirectory": "./src/main/blender/",
+  "blender.additionalArguments": [
+  ],
+  "blender.addon.reloadOnSave": true,
+}

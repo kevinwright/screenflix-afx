@@ -3,3 +3,5 @@
 /.idea/
 /target/
 
+*.python-version
+/src/main/blender/screenflick_importer/__pycache__/
